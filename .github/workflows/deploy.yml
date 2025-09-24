@@ -1,0 +1,107 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy static content to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+env:
+  # Setting an environment variable with the value of a configuration variable
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
+
+jobs:
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Replace variables in resources
+        run: |
+          echo "${FAVICON_VAR}" > favicon.svg
+          echo "${LOGO_VAR}" > logo.svg
+        env:
+          FAVICON_VAR: ${{ vars.FAVICON_VAR }}
+          LOGO_VAR: ${{ vars.LOGO_VAR }}
+      - name: Replace variables in index.html
+        run: |
+          sed -i "s|{{lang}}|${LANG_VAR}|g" index.html
+          sed -i "s|{{title}}|${TITLE_VAR}|g" index.html
+          sed -i "s|{{description}}|${DESCRIPTION_VAR}|g" index.html
+          sed -i "s|{{body.color}}|${BODY_COLOR_VAR}|g" index.html
+          sed -i "s|{{headline.start}}|${HEADLINE_START_VAR}|g" index.html
+          sed -i "s|{{headline.start.color}}|${HEADLINE_START_COLOR_VAR}|g" index.html
+          sed -i "s|{{headline.end}}|${HEADLINE_END_VAR}|g" index.html
+          sed -i "s|{{headline.end.color}}|${HEADLINE_END_COLOR_VAR}|g" index.html
+          sed -i "s|{{subline}}|${SUBLINE_VAR}|g" index.html
+          sed -i "s|{{subline.color}}|${SUBLINE_COLOR_VAR}|g" index.html
+        env:
+          LANG_VAR: ${{ vars.LANG_VAR }}
+          TITLE_VAR: ${{ vars.TITLE_VAR }}
+          DESCRIPTION_VAR: ${{ vars.DESCRIPTION_VAR }}
+          BODY_COLOR_VAR: ${{ vars.BODY_COLOR_VAR }}
+          HEADLINE_START_VAR: ${{ vars.HEADLINE_START_VAR }}
+          HEADLINE_START_COLOR_VAR: ${{ vars.HEADLINE_START_COLOR_VAR }}
+          HEADLINE_END_VAR: ${{ vars.HEADLINE_END_VAR }}
+          HEADLINE_END_COLOR_VAR: ${{ vars.HEADLINE_END_COLOR_VAR }}
+          SUBLINE_VAR: ${{ vars.SUBLINE_VAR }}
+          SUBLINE_COLOR_VAR: ${{ vars.SUBLINE_COLOR_VAR }}
+      - name: Display vars
+        run: |
+          echo "favicon: ${FAVICON_VAR:0:13}..."
+          echo "logo: ${LOGO_VAR:0:13}..."
+          echo "lang: ${LANG_VAR}"
+          echo "title: ${TITLE_VAR}"
+          echo "description: ${DESCRIPTION_VAR}"
+          echo "body.color: ${BODY_COLOR_VAR}"
+          echo "headline.start: ${HEADLINE_START_VAR}"
+          echo "headline.start.color: ${HEADLINE_START_COLOR_VAR}"
+          echo "headline.end: ${HEADLINE_END_VAR}"
+          echo "headline.end.color: ${HEADLINE_END_COLOR_VAR}"
+          echo "subline: ${SUBLINE_VAR}"
+          echo "subline.color: ${SUBLINE_COLOR_VAR}"
+        env:
+          FAVICON_VAR: ${{ vars.FAVICON_VAR }}
+          LOGO_VAR: ${{ vars.LOGO_VAR }}
+          LANG_VAR: ${{ vars.LANG_VAR }}
+          TITLE_VAR: ${{ vars.TITLE_VAR }}
+          DESCRIPTION_VAR: ${{ vars.DESCRIPTION_VAR }}
+          BODY_COLOR_VAR: ${{ vars.BODY_COLOR_VAR }}
+          HEADLINE_START_VAR: ${{ vars.HEADLINE_START_VAR }}
+          HEADLINE_START_COLOR_VAR: ${{ vars.HEADLINE_START_COLOR_VAR }}
+          HEADLINE_END_VAR: ${{ vars.HEADLINE_END_VAR }}
+          HEADLINE_END_COLOR_VAR: ${{ vars.HEADLINE_END_COLOR_VAR }}
+          SUBLINE_VAR: ${{ vars.SUBLINE_VAR }}
+          SUBLINE_COLOR_VAR: ${{ vars.SUBLINE_COLOR_VAR }}
+      - name: Display index.html
+        run: |
+          cat index.html
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repository
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
